@@ -18,13 +18,40 @@ import com.example.firststep.databinding.ActivityMainBinding;
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
 
-public class MainActivity<activityResultLauncher> extends AppCompatActivity {
+import java.text.DecimalFormat;
+
+public class MainActivity<activityResultLauncher> extends AppCompatActivity implements TransactionEvents {
+
+    private String pin;
+    @Override
+    public String enterPin(int ptc, String amount) {
+        pin = new String();
+        Intent it = new Intent(MainActivity.this, PinpadActivity.class);
+        it.putExtra("ptc", ptc);
+        it.putExtra("amount", amount);
+        synchronized (MainActivity.this) {
+            activityResultLauncher.launch(it);
+            try {
+                MainActivity.this.wait();
+            } catch (Exception ex) {
+                //todo: log error
+            }
+        }
+        return pin;
+    }
+
+
+
+
     ActivityResultLauncher activityResultLauncher;
     // Used to load the 'firststep' library on application startup.
     static {
         System.loadLibrary("firststep");
         System.loadLibrary("mbedcrypto");
     }
+
+
+
 
     private ActivityMainBinding binding;
 
@@ -93,6 +120,17 @@ public class MainActivity<activityResultLauncher> extends AppCompatActivity {
         //byte[] dec = decrypt(key, enc);
         //String s = new String(Hex.encodeHex(dec)).toUpperCase();
         //Toast.makeText(this, s, Toast.LENGTH_SHORT).show();
+        new Thread(()-> {
+            try {
+                byte[] trd = stringToHex("9F0206000000000100");
+                boolean ok = transaction(trd);
+                runOnUiThread(()-> {
+                    Toast.makeText(MainActivity.this, ok ? "ok" : "failed", Toast.LENGTH_SHORT).show();
+                });
+            } catch (Exception ex) {
+                // todo: log error
+            }
+        }).start();
     }
 
 
@@ -105,5 +143,6 @@ public class MainActivity<activityResultLauncher> extends AppCompatActivity {
     public static native byte[] randomBytes(int no);
     public static native byte[] encrypt(byte[] key, byte[] data);
     public static native byte[] decrypt(byte[] key, byte[] data);
+    public native boolean transaction(byte[] trd);
 }
 
