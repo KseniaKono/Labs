@@ -23,7 +23,7 @@ Java_com_example_firststep_MainActivity_stringFromJNI(
         JNIEnv* env,
         jobject /* this */) {
     std::string hello = "Hello from C++";
-    android_logger ->set_pattern(">>>What a lovely %A of %B! %v <<<");
+    android_logger ->set_pattern(">>> What a lovely %A of %B! %v <<<");
     LOG_INFO("Hello from c++ %d", 2022);
     SLOG_INFO("Hello from spdlog {}", 2022);
 
