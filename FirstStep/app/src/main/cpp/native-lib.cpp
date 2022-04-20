@@ -15,6 +15,37 @@ char *personalization = "first-step-sample-app";
 #define LOG_INFO(...) __android_log_print(ANDROID_LOG_INFO, "first_step_ndk", __VA_ARGS__)
 #define SLOG_INFO(...) android_logger->info( __VA_ARGS__ )
 
+JavaVM* gJvm = nullptr;
+JNIEXPORT jint JNICALL JNI_OnLoad (JavaVM* pjvm, void* reserved)
+{
+    gJvm = pjvm;
+    return JNI_VERSION_1_6;
+}
+
+JNIEnv* getEnv (bool& detach)
+{
+    JNIEnv* env = nullptr;
+    int status = gJvm->GetEnv ((void**)&env, JNI_VERSION_1_6);
+    detach = false;
+    if (status == JNI_EDETACHED)
+    {
+        status = gJvm->AttachCurrentThread (&env, NULL);
+        if (status < 0)
+        {
+            return nullptr;
+        }
+        detach = true;
+    }
+    return env;
+}
+
+void releaseEnv (bool detach, JNIEnv* env)
+{
+    if (detach && (gJvm != nullptr))
+    {
+        gJvm->DetachCurrentThread ();
+    }
+}
 
 auto android_logger = spdlog::android_logger_mt("android", "first_step_ndk");
 
@@ -85,7 +116,9 @@ Java_com_example_firststep_MainActivity_encrypt(JNIEnv *env,
     return dout;
 }
 
+
 extern "C" JNIEXPORT jbyteArray JNICALL
+
 Java_com_example_firststep_MainActivity_decrypt(JNIEnv *env,
                                          jclass, jbyteArray key, jbyteArray data)
 {
@@ -120,12 +153,17 @@ Java_com_example_firststep_MainActivity_decrypt(JNIEnv *env,
 }
 
 extern "C" JNIEXPORT jboolean JNICALL
-Java_com_example_firststep_MainActivity_transaction(JNIEnv *env, jobject thiz, jbyteArray trd){
-    jclass cls = env->GetObjectClass(thiz);
-    // () - for args without any space between, L - for class, I - for int
-    jmethodID id = env->GetMethodID(cls, "enterPin", "(ILjava/lang/String;)Ljava/lang/String;");
-    //TRD 9F0206000000000100 = amount = 1рубель
-uint8_t* p = (uint8_t*)env->GetByteArrayElements (trd, 0);
+Java_com_example_firststep_MainActivity_transaction(JNIEnv *xenv, jobject xthiz, jbyteArray xtrd){
+    jobject thiz = xenv->NewGlobalRef(xthiz);
+    jbyteArray trd = (jbyteArray)xenv->NewGlobalRef(xtrd);
+    std::thread t([thiz, trd] {
+        bool detach = false;
+        JNIEnv *env = getEnv(detach);
+        jclass cls = env->GetObjectClass(thiz);
+        jmethodID id = env->GetMethodID(
+                cls, "enterPin", "(ILjava/lang/String;)Ljava/lang/String;");
+
+        uint8_t* p = (uint8_t*)env->GetByteArrayElements (trd, 0);
 jsize sz = env->GetArrayLength (trd);
 if ((sz != 9) || (p[0] != 0x9F) || (p[1] != 0x02) || (p[2] != 0x06))
 return false;
@@ -147,6 +185,15 @@ break;
 ptc--;
 }
 env->ReleaseByteArrayElements(trd, (jbyte *)p, 0);
-return (ptc > 0);
+        id = env->GetMethodID(cls, "transactionResult", "(Z)V");
+        env->CallVoidMethod(thiz, id, ptc > 0);
+        env->ReleaseByteArrayElements(trd, (jbyte *)p, 0);
+        env->DeleteGlobalRef(thiz);
+        env->DeleteGlobalRef(trd);
+        releaseEnv(detach, env);
+        return true;
+    });
+    t.detach();
+    return true;
 
 }

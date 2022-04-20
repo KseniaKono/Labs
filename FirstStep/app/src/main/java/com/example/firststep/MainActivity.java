@@ -40,7 +40,12 @@ public class MainActivity<activityResultLauncher> extends AppCompatActivity impl
         return pin;
     }
 
-
+    @Override
+    public void transactionResult(boolean result) {
+        runOnUiThread(()-> {
+            Toast.makeText(MainActivity.this, result ? "ok" : "failed",  Toast.LENGTH_SHORT).show();
+        });
+    }
 
 
     ActivityResultLauncher activityResultLauncher;
@@ -120,17 +125,8 @@ public class MainActivity<activityResultLauncher> extends AppCompatActivity impl
         //byte[] dec = decrypt(key, enc);
         //String s = new String(Hex.encodeHex(dec)).toUpperCase();
         //Toast.makeText(this, s, Toast.LENGTH_SHORT).show();
-        new Thread(()-> {
-            try {
-                byte[] trd = stringToHex("9F0206000000000100");
-                boolean ok = transaction(trd);
-                runOnUiThread(()-> {
-                    Toast.makeText(MainActivity.this, ok ? "ok" : "failed", Toast.LENGTH_SHORT).show();
-                });
-            } catch (Exception ex) {
-                // todo: log error
-            }
-        }).start();
+        byte[] trd = stringToHex("9F0206000000000100");
+        transaction(trd);
     }
 
 
