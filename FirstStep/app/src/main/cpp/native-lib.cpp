@@ -16,6 +16,7 @@ char *personalization = "first-step-sample-app";
 #define SLOG_INFO(...) android_logger->info( __VA_ARGS__ )
 
 JavaVM* gJvm = nullptr;
+
 JNIEXPORT jint JNICALL JNI_OnLoad (JavaVM* pjvm, void* reserved)
 {
     gJvm = pjvm;
@@ -54,7 +55,7 @@ Java_com_example_firststep_MainActivity_stringFromJNI(
         JNIEnv* env,
         jobject /* this */) {
     std::string hello = "Hello from C++";
-    android_logger ->set_pattern(">>> What a lovely %A of %B! %v <<<");
+    android_logger ->set_pattern(">>>What a lovely %A of %B! %v <<<");
     LOG_INFO("Hello from c++ %d", 2022);
     SLOG_INFO("Hello from spdlog {}", 2022);
 
@@ -83,7 +84,7 @@ Java_com_example_firststep_MainActivity_randomBytes(JNIEnv *env, jclass, jint no
 // https://tls.mbed.org/api/des_8h.html
 extern "C" JNIEXPORT jbyteArray JNICALL
 Java_com_example_firststep_MainActivity_encrypt(JNIEnv *env,
-                                         jclass, jbyteArray key, jbyteArray data)
+                                                jclass, jbyteArray key, jbyteArray data)
 {
     jsize ksz = env->GetArrayLength(key);
     jsize dsz = env->GetArrayLength(data);
@@ -116,11 +117,9 @@ Java_com_example_firststep_MainActivity_encrypt(JNIEnv *env,
     return dout;
 }
 
-
 extern "C" JNIEXPORT jbyteArray JNICALL
-
 Java_com_example_firststep_MainActivity_decrypt(JNIEnv *env,
-                                         jclass, jbyteArray key, jbyteArray data)
+                                                jclass, jbyteArray key, jbyteArray data)
 {
     jsize ksz = env->GetArrayLength(key);
     jsize dsz = env->GetArrayLength(data);
@@ -163,28 +162,31 @@ Java_com_example_firststep_MainActivity_transaction(JNIEnv *xenv, jobject xthiz,
         jmethodID id = env->GetMethodID(
                 cls, "enterPin", "(ILjava/lang/String;)Ljava/lang/String;");
 
+        // () - for args without any space between, L - for class, I - for int
+        //TRD 9F0206000000000100 = amount = 1рубель
         uint8_t* p = (uint8_t*)env->GetByteArrayElements (trd, 0);
-jsize sz = env->GetArrayLength (trd);
-if ((sz != 9) || (p[0] != 0x9F) || (p[1] != 0x02) || (p[2] != 0x06))
-return false;
-char buf[13];
-for (int i = 0; i < 6; i++) {
-uint8_t n = *(p + 3 + i);
-buf[i*2] = ((n & 0xF0) >> 4) + '0';
-buf[i*2 + 1] = (n & 0x0F) + '0';
-}
-buf[12] = 0x00;
-jstring jamount = (jstring) env->NewStringUTF(buf);
-int ptc = 3;
-while (ptc > 0) {
-jstring pin = (jstring) env->CallObjectMethod(thiz, id, ptc, jamount);
-const char * utf = env->GetStringUTFChars(pin, nullptr);
-env->ReleaseStringUTFChars(pin, utf);
-if ((utf != nullptr) && (strcmp(utf, "1234") == 0))
-break;
-ptc--;
-}
-env->ReleaseByteArrayElements(trd, (jbyte *)p, 0);
+        jsize sz = env->GetArrayLength (trd);
+        if ((sz != 9) || (p[0] != 0x9F) || (p[1] != 0x02) || (p[2] != 0x06))
+            return false;
+        char buf[13];
+        for (int i = 0; i < 6; i++) {
+            uint8_t n = *(p + 3 + i);
+            buf[i*2] = ((n & 0xF0) >> 4) + '0';
+            buf[i*2 + 1] = (n & 0x0F) + '0';
+        }
+        buf[12] = 0x00;
+        jstring jamount = (jstring) env->NewStringUTF(buf);
+        int ptc = 3;
+        while (ptc > 0) {
+            jstring pin = (jstring) env->CallObjectMethod(thiz, id, ptc, jamount);
+            const char * utf = env->GetStringUTFChars(pin, nullptr);
+            env->ReleaseStringUTFChars(pin, utf);
+            if ((utf != nullptr) && (strcmp(utf, "1234") == 0))
+                break;
+            ptc--;
+        }
+        env->ReleaseByteArrayElements(trd, (jbyte *)p, 0);
+
         id = env->GetMethodID(cls, "transactionResult", "(Z)V");
         env->CallVoidMethod(thiz, id, ptc > 0);
         env->ReleaseByteArrayElements(trd, (jbyte *)p, 0);
@@ -195,5 +197,4 @@ env->ReleaseByteArrayElements(trd, (jbyte *)p, 0);
     });
     t.detach();
     return true;
-
 }

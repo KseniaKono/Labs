@@ -11,6 +11,7 @@ import android.widget.TextView;
 import java.text.DecimalFormat;
 
 public class PinpadActivity extends AppCompatActivity {
+
     TextView tvPin;
     String pin = "";
     final int MAX_KEYS = 10;
@@ -33,9 +34,13 @@ public class PinpadActivity extends AppCompatActivity {
         else if (pts == 1)
             tp.setText("Осталась одна попытка");
 
+
         tvPin = findViewById(R.id.txtPin);
         ShuffleKeys();
         findViewById(R.id.btnOK).setOnClickListener((View) -> {
+            Intent it = new Intent();
+            it.putExtra("pin", pin);
+            setResult(RESULT_OK, it);
             finish();
         });
         findViewById(R.id.btnReset).setOnClickListener((View) -> {
@@ -43,17 +48,11 @@ public class PinpadActivity extends AppCompatActivity {
             tvPin.setText("");
         });
 
-        findViewById(R.id.btnOK).setOnClickListener((View) -> {
-            Intent it = new Intent();
-            it.putExtra("pin", pin);
-            setResult(RESULT_OK, it);
-            finish();
-        });
-
     }
+
     public void keyClick(View v)
     {
-        String key = ((TextView)v).getText().toString();
+        String key = ((TextView) v).getText().toString();
         int sz = pin.length();
         if (sz < 4)
         {
@@ -76,16 +75,15 @@ public class PinpadActivity extends AppCompatActivity {
                 findViewById(R.id.btnKey8),
                 findViewById(R.id.btnKey9),
         };
-        byte[] rnd = MainActivity.randomBytes(MAX_KEYS);
+        byte[] rkeyord = MainActivity.randomBytes(MAX_KEYS);
         for(int i = 0; i < MAX_KEYS; i++)
         {
-            int idx = (rnd[i] & 0xFF) % 10;
+            int idx = (rkeyord[i] & 0xFF) % 10; // & 0xFF to convert to unsigned
             CharSequence txt = keys[idx].getText();
             keys[idx].setText(keys[i].getText());
             keys[i].setText(txt);
         }
     }
 
+
 }
-
-
