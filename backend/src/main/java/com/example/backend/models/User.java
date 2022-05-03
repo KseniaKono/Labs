@@ -1,5 +1,6 @@
 package com.example.backend.models;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import javax.persistence.*;
@@ -37,6 +38,8 @@ public class User {
     @Column(name = "salt")
     public String salt;
 
+    //@JsonIgnore
+   // @JsonBackReference
     @Column(name = "token")
     public String token;
 
