@@ -63,6 +63,7 @@ public class ArtistController {
             artist = cc.get();
             artist.name = artistDetails.name;
             artist.century = artistDetails.century;
+            artist.country = artistDetails.country;
             artistRepository.save(artist);
             return ResponseEntity.ok(artist);
         } else {
