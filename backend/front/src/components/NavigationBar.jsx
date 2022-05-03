@@ -20,6 +20,7 @@ class NavigationBarClass extends React.Component {
  <Nav className="me-auto">
  <Nav.Link href="/home">Home</Nav.Link>
  <Nav.Link onClick={this.goHome}>Another Home</Nav.Link>
+ <Nav.Link onClick={()=>{this.props.history.push("/home")}}>Yet another home</Nav.Link>
  </Nav>
  </Navbar.Collapse>
  </Navbar>
