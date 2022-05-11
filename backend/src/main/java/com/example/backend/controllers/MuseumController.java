@@ -1,5 +1,6 @@
 package com.example.backend.controllers;
 
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -9,7 +10,7 @@ import com.example.backend.repositories.MuseumRepository;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.*;
-
+@CrossOrigin(origins = "http://localhost:3000")
 @RestController
 @RequestMapping("/api/v1")
 public class MuseumController {
