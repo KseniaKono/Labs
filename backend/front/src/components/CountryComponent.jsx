@@ -1,7 +1,7 @@
-import React, {Component, useEffect, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import BackendService from '../services/BackendService';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import {faChevronLeft, faSave} from '@fortawesome/free-solid-svg-icons';
+import {faChevronLeft, faSave} from '@fortawesome/fontawesome-free-solid';
 import {alertActions} from "../Utils/Rdx";
 import {connect} from "react-redux";
 import {Form} from "react-bootstrap";

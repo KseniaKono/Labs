@@ -1,53 +1,18 @@
 package com.example.backend.models;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
-@Entity
-@Table(name = "users")
-@Access(AccessType.FIELD)
+@Entity // таблица в базе
+@Table(name = "users") //имя это таблицы users
+@Access(AccessType.FIELD) // разрешаем доступ к полям класса
 public class User {
     public User() { }
-    public User(Long id) {
-        this.id = id;
-    }
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id", updatable = false, nullable = false)
-    public long id;
-
-    @Column(name = "login", unique = true, nullable = false)
-    public String login;
-
-    @JsonIgnore
-    @Column(name = "password")
-    public String password;
-
-    @Column(name = "email", unique = true, nullable = false)
-    public String email;
-
-    @JsonIgnore
-    @Column(name = "salt")
-    public String salt;
-
-    //@JsonIgnore
-   // @JsonBackReference
-    @Column(name = "token")
-    public String token;
-
-    @Column(name = "activity")
-    public LocalDateTime activity;
-
-    @ManyToMany(mappedBy = "users")
-    public Set<Museum> museums = new HashSet<>();
+    public User(Long id) { this.id = id; }
 
     public void addMuseum(Museum m) {
         this.museums.add(m);
@@ -58,5 +23,34 @@ public class User {
         m.users.remove(this);
     }
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id", updatable = false, nullable = false)
+    public long id;
 
+    @Column(name = "login", nullable = false, unique = true)
+    public String login;
+
+    @JsonIgnore
+    @Column(name = "password")
+    public String password;
+
+    @Transient
+    public String np;
+
+    @Column(name = "email", nullable = false, unique = true)
+    public String email;
+
+    @JsonIgnore
+    @Column(name = "salt")
+    public String salt;
+
+    @Column(name = "token")
+    public String token;
+
+    @Column(name = "activity")
+    public LocalDateTime activity;
+
+    @ManyToMany(mappedBy = "users")
+    public Set<Museum> museums = new HashSet<Museum>();
 }
